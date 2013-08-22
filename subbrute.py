@@ -12,6 +12,12 @@ import signal
 import sys
 import random
 import dns.resolver
+import smtplib, os
+from email.MIMEMultipart import MIMEMultipart
+from email.MIMEBase import MIMEBase
+from email.MIMEText import MIMEText
+from email.Utils import COMMASPACE, formatdate
+from email import Encoders
 from threading import Thread
 #support for python 2.7 and 3
 try:
@@ -196,6 +202,32 @@ def run_target(target, hosts, resolve_list, thread_count, file):
         if threads_remaining <= 0:
             break
 
+
+
+def send_mail(send_from, send_to, subject, text, files=[], server="localhost"):
+    assert type(send_to)==list
+    assert type(files)==list
+
+    msg = MIMEMultipart()
+    msg['From'] = send_from
+    msg['To'] = COMMASPACE.join(send_to)
+    msg['Date'] = formatdate(localtime=True)
+    msg['Subject'] = subject
+
+    msg.attach( MIMEText(text) )
+
+    for f in files:
+        part = MIMEBase('application', "octet-stream")
+        part.set_payload( open(f,"rb").read() )
+        Encoders.encode_base64(part)
+        part.add_header('Content-Disposition', 'attachment; filename="%s"' % os.path.basename(f))
+        msg.attach(part)
+
+    smtp = smtplib.SMTP(server)
+    smtp.sendmail(send_from, send_to, msg.as_string())
+    smtp.close()
+
+
 if __name__ == "__main__":
     parser = optparse.OptionParser("usage: %prog [options] target")
     parser.add_option("-c", "--thread_count", dest = "thread_count",
@@ -211,6 +243,8 @@ if __name__ == "__main__":
               type = "string", help = "(optional) A file containing a newline delimited list of domains to brute force.")
     parser.add_option("-o", "--output_file", dest = "output_file", default = "",
               type = "string", help = "(optional) A file to output list")
+    parser.add_option("-e", "--sendto_email", dest = "sendto_email", default = "",
+              type = "string", help = "(optional) email to send file to")
 
     (options, args) = parser.parse_args()
 
@@ -238,3 +272,5 @@ if __name__ == "__main__":
         target = target.strip()
         if target:
             run_target(target, hosts, resolve_list, options.thread_count, options.output_file)
+            if options.sendto_email:!="":
+                send_mail(options.sendto_email,options.sendto_email,"domains","text",[options.output_file], "localhost")
