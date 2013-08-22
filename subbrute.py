@@ -147,7 +147,13 @@ def check_resolvers(file_name):
                 pass
     return ret
 
-def run_target(target, hosts, resolve_list, thread_count):
+def print_to_file(output,file):
+    f = open(file,'a')
+    f.write(output+'\n')
+    f.close()
+
+
+def run_target(target, hosts, resolve_list, thread_count, file):
     #The target might have a wildcard dns record...
     wildcard = False
     try:
@@ -183,6 +189,7 @@ def run_target(target, hosts, resolve_list, thread_count):
                 threads_remaining -= 1
             else:
                 print(d)
+                print_to_file(d,file)
         except queue.Empty:
             pass
         #make sure everyone is complete
@@ -202,6 +209,8 @@ if __name__ == "__main__":
               type = "string", help = "(optional) A file containing unorganized domain names which will be filtered into a list of subdomains sorted by frequency.  This was used to build subs.txt.")
     parser.add_option("-t", "--target_file", dest = "targets", default = "",
               type = "string", help = "(optional) A file containing a newline delimited list of domains to brute force.")
+    parser.add_option("-o", "--output_file", dest = "output_file", default = "",
+              type = "string", help = "(optional) A file to output list")
 
     (options, args) = parser.parse_args()
 
@@ -228,4 +237,4 @@ if __name__ == "__main__":
     for target in targets:
         target = target.strip()
         if target:
-            run_target(target, hosts, resolve_list, options.thread_count)
+            run_target(target, hosts, resolve_list, options.thread_count, options.output_file)
