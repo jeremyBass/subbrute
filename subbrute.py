@@ -272,5 +272,5 @@ if __name__ == "__main__":
         target = target.strip()
         if target:
             run_target(target, hosts, resolve_list, options.thread_count, options.output_file)
-            if options.sendto_email:!="":
+            if options.sendto_email != "":
                 send_mail(options.sendto_email,options.sendto_email,"domains","text",[options.output_file], "localhost")
