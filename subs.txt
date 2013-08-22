@@ -2,6 +2,11 @@ www
 blog
 groups
 home
+vetmed
+eecs
+forlang
+gardening
+infotech
 homepage
 homepage3
 homepage2
